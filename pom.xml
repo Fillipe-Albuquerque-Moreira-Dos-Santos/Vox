@@ -8,11 +8,11 @@
 		<version>4.0.0</version>
 		<relativePath/>
 	</parent>
-	<groupId>com.acessibilidade.projeto</groupId>
-	<artifactId>acessibilidade</artifactId>
+	<groupId>com.vox.projeto</groupId>
+	<artifactId>Vox</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>acessibilidade</name>
-	<description>Demo project for Spring Boot</description>
+	<name>vox</name>
+	<description>Sistema de comunição aumentativa e alternativa</description>
 	<url/>
 	<licenses>
 		<license/>
