@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class AcessibilidadeApplication {
+public class VoxApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(AcessibilidadeApplication.class, args);
+		SpringApplication.run(VoxApplication.class, args);
 	}
 
 }
