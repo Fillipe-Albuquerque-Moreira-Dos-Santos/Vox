@@ -1,0 +1,74 @@
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="header-left">
+        <h1>Vox Dashboard</h1>
+        @if (authService.currentUser()) {
+          <p class="welcome-text">Bem-vindo, {{ authService.currentUser()?.nome }}</p>
+        }
+      </div>
+      <div class="header-right">
+        <button class="btn-logout" (click)="logout()">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <div class="content-wrapper">
+      <section class="user-info-section">
+        <h2>Informações do Usuário</h2>
+        @if (authService.currentUser(); as user) {
+          <div class="user-card">
+            <div class="user-avatar">
+              {{ user.nome.charAt(0).toUpperCase() }}
+            </div>
+            <div class="user-details">
+              <p><strong>Nome:</strong> {{ user.nome }}</p>
+              <p><strong>E-mail:</strong> {{ user.email }}</p>
+              @if (user.role) {
+                <p><strong>Role:</strong> {{ user.role }}</p>
+              }
+            </div>
+          </div>
+        }
+      </section>
+
+      <section class="usuarios-section">
+        <h2>Usuários do Sistema</h2>
+
+        @if (loading()) {
+          <div class="loading-container">
+            <span class="spinner"></span>
+            <p>Carregando usuários...</p>
+          </div>
+        } @else if (error()) {
+          <div class="error-message">
+            {{ error() }}
+            <button class="btn-retry" (click)="loadUsuarios()">Tentar novamente</button>
+          </div>
+        } @else if (usuarios().length === 0) {
+          <div class="empty-state">
+            <p>Nenhum usuário encontrado</p>
+          </div>
+        } @else {
+          <div class="usuarios-grid">
+            @for (usuario of usuarios(); track usuario.id) {
+              <div class="usuario-card">
+                <div class="usuario-avatar">
+                  {{ usuario.nome.charAt(0).toUpperCase() }}
+                </div>
+                <div class="usuario-info">
+                  <h3>{{ usuario.nome }}</h3>
+                  <p class="usuario-email">{{ usuario.email }}</p>
+                  @if (usuario.role) {
+                    <span class="usuario-badge">{{ usuario.role }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+    </div>
+  </main>
+</div>
