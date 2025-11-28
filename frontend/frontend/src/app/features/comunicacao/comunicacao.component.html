@@ -1,0 +1,207 @@
+<!-- src/app/features/comunicacao/comunicacao.component.html -->
+<div
+  class="min-h-screen p-4 transition-colors duration-300"
+  [class.bg-gray-900]="modoEscuro()"
+  [class.bg-white]="!modoEscuro()"
+  [class.high-contrast]="modoAltoContraste()">
+
+  <!-- Barra de Mensagem Construída -->
+  <div class="mb-6 sticky top-0 z-10 bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg p-4"
+       [class.bg-gray-800]="modoEscuro()"
+       [class.bg-blue-50]="!modoEscuro()">
+
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-lg font-semibold"
+          [class.text-white]="modoEscuro()"
+          [class.text-gray-800]="!modoEscuro()">
+        Mensagem
+      </h2>
+
+      <div class="flex gap-2">
+        <button
+          (click)="removerUltimoPictograma()"
+          [disabled]="pictogramasSelecionados().length === 0"
+          class="px-4 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          ← Voltar
+        </button>
+
+        <button
+          (click)="limparSelecao()"
+          [disabled]="pictogramasSelecionados().length === 0"
+          class="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          🗑️ Limpar
+        </button>
+      </div>
+    </div>
+
+    <!-- Pictogramas Selecionados -->
+    <div class="flex flex-wrap gap-2 min-h-[100px] p-3 rounded-lg border-2 border-dashed mb-3"
+         [class.bg-gray-700]="modoEscuro()"
+         [class.bg-white]="!modoEscuro()"
+         [class.border-gray-600]="modoEscuro()"
+         [class.border-gray-300]="!modoEscuro()">
+
+      @if (pictogramasSelecionados().length === 0) {
+        <div class="w-full text-center py-8 text-gray-400">
+          Selecione pictogramas para construir sua mensagem
+        </div>
+      }
+
+      @for (item of pictogramasSelecionados(); track item.timestamp) {
+        <div
+          class="flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-transform hover:scale-105"
+          [ngClass]="item.pictograma.cor"
+          [style.width.px]="96"
+          [style.height.px]="96">
+
+          @if (item.pictograma.tipo === 'EMOJI') {
+            <span class="text-4xl">{{ item.pictograma.icone }}</span>
+          } @else if (item.pictograma.tipo === 'ICONE') {
+            <span class="text-4xl">{{ item.pictograma.icone }}</span>
+          } @else if (item.pictograma.imagemUrl) {
+            <img [src]="item.pictograma.imagemUrl" [alt]="item.pictograma.label" class="w-12 h-12 object-cover rounded">
+          }
+
+          <span class="text-xs font-semibold text-white mt-2 text-center">
+            {{ item.pictograma.label }}
+          </span>
+        </div>
+      }
+    </div>
+
+    <!-- Texto Completo -->
+    @if (textoCompleto()) {
+      <div class="p-3 rounded-lg mb-3"
+           [class.bg-gray-600]="modoEscuro()"
+           [class.bg-gray-100]="!modoEscuro()">
+        <p class="text-lg font-medium text-center"
+           [class.text-white]="modoEscuro()"
+           [class.text-gray-800]="!modoEscuro()">
+          {{ textoCompleto() }}
+        </p>
+      </div>
+    }
+
+    <!-- Botões de Ação -->
+    <div class="flex gap-2">
+      <button
+        (click)="falarMensagem()"
+        [disabled]="pictogramasSelecionados().length === 0"
+        class="flex-1 px-6 py-3 rounded-lg bg-green-500 hover:bg-green-600 text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+        🔊 Falar
+      </button>
+
+      <button
+        (click)="salvarMensagem()"
+        [disabled]="pictogramasSelecionados().length === 0"
+        class="flex-1 px-6 py-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+        💾 Salvar
+      </button>
+    </div>
+  </div>
+
+  <!-- Abas de Categorias -->
+  <div class="mb-6 overflow-x-auto">
+    <div class="flex gap-2 min-w-max pb-2">
+      @for (categoria of categorias(); track categoria.id) {
+        <button
+          (click)="selecionarCategoria(categoria)"
+          class="px-6 py-3 rounded-lg font-semibold transition-all whitespace-nowrap"
+          [ngClass]="{
+            'ring-4 ring-offset-2 scale-105': categoriaSelecionada()?.id === categoria.id,
+            'opacity-70 hover:opacity-100': categoriaSelecionada()?.id !== categoria.id
+          }"
+          [class]="categoria.cor">
+
+          @if (categoria.icone) {
+            <span class="mr-2">{{ categoria.icone }}</span>
+          }
+          <span class="text-white">{{ categoria.nome }}</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Grid de Pictogramas -->
+  @if (loading()) {
+    <div class="flex justify-center items-center py-20">
+      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+    </div>
+  } @else if (error()) {
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+      <strong class="font-bold">Erro!</strong>
+      <span class="block sm:inline"> {{ error() }}</span>
+    </div>
+  } @else {
+    <!-- Pictogramas Mais Usados -->
+    @if (pictogramasMaisUsados().length > 0 && !categoriaSelecionada()) {
+      <div class="mb-6">
+        <h3 class="text-xl font-bold mb-4"
+            [class.text-white]="modoEscuro()"
+            [class.text-gray-800]="!modoEscuro()">
+          ⭐ Mais Usados
+        </h3>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          @for (pictograma of pictogramasMaisUsados(); track pictograma.id) {
+            <button
+              (click)="selecionarPictograma(pictograma)"
+              class="flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all hover:scale-105 hover:shadow-xl active:scale-95"
+              [ngClass]="pictograma.cor"
+              [class]="tamanhoPictograma()">
+
+              @if (pictograma.tipo === 'EMOJI') {
+                <span class="text-5xl mb-2">{{ pictograma.icone }}</span>
+              } @else if (pictograma.tipo === 'ICONE') {
+                <span class="text-5xl mb-2">{{ pictograma.icone }}</span>
+              } @else if (pictograma.imagemUrl) {
+                <img [src]="pictograma.imagemUrl" [alt]="pictograma.label" class="w-16 h-16 object-cover rounded mb-2">
+              }
+
+              <span class="text-sm font-bold text-white text-center">
+                {{ pictograma.label }}
+              </span>
+
+              <span class="text-xs text-white opacity-75 mt-1">
+                {{ pictograma.vezesUsado }}x
+              </span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Pictogramas da Categoria -->
+    @if (categoriaSelecionada()) {
+      <div>
+        <h3 class="text-xl font-bold mb-4"
+            [class.text-white]="modoEscuro()"
+            [class.text-gray-800]="!modoEscuro()">
+          {{ categoriaSelecionada()?.nome }}
+        </h3>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          @for (pictograma of pictogramas(); track pictograma.id) {
+            <button
+              (click)="selecionarPictograma(pictograma)"
+              class="flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all hover:scale-105 hover:shadow-xl active:scale-95"
+              [ngClass]="pictograma.cor"
+              [class]="tamanhoPictograma()">
+
+              @if (pictograma.tipo === 'EMOJI') {
+                <span class="text-5xl mb-2">{{ pictograma.icone }}</span>
+              } @else if (pictograma.tipo === 'ICONE') {
+                <span class="text-5xl mb-2">{{ pictograma.icone }}</span>
+              } @else if (pictograma.imagemUrl) {
+                <img [src]="pictograma.imagemUrl" [alt]="pictograma.label" class="w-16 h-16 object-cover rounded mb-2">
+              }
+
+              <span class="text-sm font-bold text-white text-center leading-tight">
+                {{ pictograma.label }}
+              </span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>
