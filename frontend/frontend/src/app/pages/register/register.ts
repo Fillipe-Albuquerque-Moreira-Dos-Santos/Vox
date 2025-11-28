@@ -1,6 +1,3 @@
-// 📁 src/app/pages/register/register.ts
-// SUBSTITUIR O CONTEÚDO EXISTENTE
-
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -24,7 +21,6 @@ export class Register {
     private authService: Auth,
     private router: Router
   ) {
-    // Redirecionar se já estiver autenticado
     if (this.authService.isAuthenticated()) {
       this.router.navigate(['/dashboard']);
     }
@@ -49,8 +45,6 @@ export class Register {
       next: (response) => {
         console.log('✅ Usuário registrado com sucesso!', response);
         this.loading.set(false);
-
-        // Mostre mensagem de sucesso e redirecione para login
         alert('Conta criada com sucesso! Faça login para continuar.');
         this.router.navigate(['/login']);
       },

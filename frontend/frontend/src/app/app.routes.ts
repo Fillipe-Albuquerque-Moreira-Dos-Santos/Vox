@@ -1,5 +1,6 @@
-import { Routes } from '@angular/router';
-import { authGuard } from "../core/guards/auth.guard";
+import {Routes} from '@angular/router';
+import {authGuard} from './core/guards/auth-guard';
+
 
 export const routes: Routes = [
   {
@@ -18,7 +19,7 @@ export const routes: Routes = [
   },
   {
     path: 'historico',
-    loadComponent: () => import('./features/historico/historico.component').then(m => m.HistoricoComponent),
+    loadComponent: () => import('./features/historico/Historico').then(m => m.HistoricoComponent),
     canActivate: [authGuard]
   },
   {

@@ -1,4 +1,4 @@
-import { Component, computed } from '@angular/core';
+import {Component, computed, signal} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from './core/services/auth.service';

@@ -21,8 +21,10 @@ interface PictogramaSelecionado {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './comunicacao.component.html',
-  styleUrls: ['./comunicacao.component.scss']
+  // styleUrls: ['./comunicacao.component.scss'] // remover se não tiver o arquivo
+  styles: []
 })
+
 export class ComunicacaoComponent implements OnInit {
   // Signals
   categorias = signal<Categoria[]>([]);
