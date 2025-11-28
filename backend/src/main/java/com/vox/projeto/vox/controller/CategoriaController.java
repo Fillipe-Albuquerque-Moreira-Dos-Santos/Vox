@@ -31,7 +31,7 @@ public class CategoriaController {
             @RequestHeader("Usuario-Id") Long usuarioId) {
 
         log.info("POST /api/categorias - Criando categoria para usuário: {}", usuarioId);
-        CategoriaDTO criada = categoriaService.criarCategoria(dto, usuarioId);
+        CategoriaDTO criada = categoriaService.criar(dto, usuarioId);
         return ResponseEntity.status(HttpStatus.CREATED).body(criada);
     }
 
@@ -41,7 +41,7 @@ public class CategoriaController {
             @RequestHeader("Usuario-Id") Long usuarioId) {
 
         log.info("GET /api/categorias - Listando categorias para usuário: {}", usuarioId);
-        List<CategoriaDTO> categorias = categoriaService.listarCategoriasDisponiveis(usuarioId);
+        List<CategoriaDTO> categorias = categoriaService.buscarCategoriasDisponiveis(usuarioId);
         return ResponseEntity.ok(categorias);
     }
 
@@ -52,7 +52,7 @@ public class CategoriaController {
             @RequestHeader("Usuario-Id") Long usuarioId) {
 
         log.info("GET /api/categorias/{} - Buscando categoria com pictogramas", categoriaId);
-        CategoriaComPictogramasDTO categoria = categoriaService.buscarCategoriaComPictogramas(categoriaId, usuarioId);
+        CategoriaComPictogramasDTO categoria = categoriaService.buscarComPictogramas(categoriaId, usuarioId);
         return ResponseEntity.ok(categoria);
     }
 
@@ -64,7 +64,7 @@ public class CategoriaController {
             @RequestHeader("Usuario-Id") Long usuarioId) {
 
         log.info("PUT /api/categorias/{} - Atualizando categoria", categoriaId);
-        CategoriaDTO atualizada = categoriaService.atualizarCategoria(categoriaId, dto, usuarioId);
+        CategoriaDTO atualizada = categoriaService.atualizar(categoriaId, dto, usuarioId);
         return ResponseEntity.ok(atualizada);
     }
 
@@ -75,7 +75,7 @@ public class CategoriaController {
             @RequestHeader("Usuario-Id") Long usuarioId) {
 
         log.info("DELETE /api/categorias/{} - Desativando categoria", categoriaId);
-        categoriaService.desativarCategoria(categoriaId, usuarioId);
+        categoriaService.desativar(categoriaId, usuarioId);
         return ResponseEntity.noContent().build();
     }
 
@@ -86,7 +86,7 @@ public class CategoriaController {
             @RequestHeader("Usuario-Id") Long usuarioId) {
 
         log.info("PUT /api/categorias/reordenar - Reordenando categorias");
-        categoriaService.reordenarCategorias(categoriaIds, usuarioId);
+        categoriaService.reordenar(categoriaIds, usuarioId);
         return ResponseEntity.ok().build();
     }
 }

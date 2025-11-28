@@ -11,13 +11,15 @@ import com.vox.projeto.vox.mapper.CategoriaMapper;
 import com.vox.projeto.vox.mapper.PictogramaMapper;
 import com.vox.projeto.vox.repository.CategoriaRepository;
 import com.vox.projeto.vox.repository.UsuarioRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -38,24 +40,22 @@ public class CategoriaService {
 
         Usuario usuario = buscarUsuario(usuarioId);
 
-        // Validar se categoria com mesmo nome já existe
         if (categoriaRepository.existsByNomeAndUsuario(dto.getNome(), usuario)) {
             throw new BusinessException("Já existe uma categoria com o nome '" + dto.getNome() + "'");
         }
 
         Categoria categoria = categoriaMapper.toEntity(dto);
         categoria.setUsuario(usuario);
-        categoria.setPadrao(false); // Categoria personalizada
+        categoria.setPadrao(false);
 
-        // Se ordem não foi definida, colocar no final
+        // ordem automática
         if (categoria.getOrdem() == null || categoria.getOrdem() == 0) {
-            long quantidade = categoriaRepository.countByUsuarioAndAtivaTrue(usuario);
-            categoria.setOrdem((int) quantidade + 1);
+            categoria.setOrdem((int) categoriaRepository.countByUsuarioAndAtivaTrue(usuario) + 1);
         }
 
         categoria = categoriaRepository.save(categoria);
-        log.info("Categoria criada com sucesso. ID: {}", categoria.getId());
 
+        log.info("Categoria criada com sucesso. ID: {}", categoria.getId());
         return categoriaMapper.toDTO(categoria);
     }
 
@@ -67,11 +67,11 @@ public class CategoriaService {
         log.info("Buscando categorias disponíveis para usuário ID: {}", usuarioId);
 
         Usuario usuario = buscarUsuario(usuarioId);
-        List<Categoria> categorias = categoriaRepository.findCategoriasDisponiveisParaUsuario(usuario);
 
-        return categorias.stream()
+        return categoriaRepository.findCategoriasDisponiveisParaUsuario(usuario)
+                .stream()
                 .map(categoriaMapper::toDTO)
-                .collect(Collectors.toList());
+                .toList(); // Java 25
     }
 
     /**
@@ -84,26 +84,24 @@ public class CategoriaService {
         Usuario usuario = buscarUsuario(usuarioId);
         Categoria categoria = buscarCategoria(categoriaId);
 
-        // Verificar se usuário tem permissão (categoria padrão ou dele)
         if (!categoria.getPadrao() && !categoria.getUsuario().getId().equals(usuarioId)) {
             throw new BusinessException("Você não tem permissão para acessar esta categoria");
         }
 
-        CategoriaComPictogramasDTO dto = new CategoriaComPictogramasDTO();
-        dto.setId(categoria.getId());
-        dto.setNome(categoria.getNome());
-        dto.setDescricao(categoria.getDescricao());
-        dto.setCor(categoria.getCor());
-        dto.setIcone(categoria.getIcone());
-        dto.setAtiva(categoria.getAtiva());
-        dto.setOrdem(categoria.getOrdem());
-
-        List<PictogramaDTO> pictogramas = categoria.getPictogramas().stream()
-                .filter(p -> p.getAtivo())
-                .map(pictogramaMapper::toDTO)
-                .collect(Collectors.toList());
-
-        dto.setPictogramas(pictogramas);
+        CategoriaComPictogramasDTO dto = new CategoriaComPictogramasDTO(
+                categoria.getId(),
+                categoria.getNome(),
+                categoria.getDescricao(),
+                categoria.getCor(),
+                categoria.getIcone(),
+                categoria.getAtiva(),
+                categoria.getOrdem(),
+                categoria.getPictogramas()
+                        .stream()
+                        .filter(p -> p.getAtivo())
+                        .map(pictogramaMapper::toDTO)
+                        .toList()
+        );
 
         return dto;
     }
@@ -117,17 +115,14 @@ public class CategoriaService {
         Usuario usuario = buscarUsuario(usuarioId);
         Categoria categoria = buscarCategoria(id);
 
-        // Apenas categorias personalizadas podem ser editadas
         if (categoria.getPadrao()) {
             throw new BusinessException("Categorias padrão do sistema não podem ser editadas");
         }
 
-        // Verificar se categoria pertence ao usuário
         if (!categoria.getUsuario().getId().equals(usuarioId)) {
             throw new BusinessException("Você não tem permissão para editar esta categoria");
         }
 
-        // Validar nome duplicado (exceto ela mesma)
         if (!categoria.getNome().equals(dto.getNome()) &&
                 categoriaRepository.existsByNomeAndUsuario(dto.getNome(), usuario)) {
             throw new BusinessException("Já existe uma categoria com o nome '" + dto.getNome() + "'");
@@ -140,8 +135,8 @@ public class CategoriaService {
         categoria.setOrdem(dto.getOrdem());
 
         categoria = categoriaRepository.save(categoria);
-        log.info("Categoria atualizada com sucesso. ID: {}", categoria.getId());
 
+        log.info("Categoria atualizada com sucesso. ID: {}", categoria.getId());
         return categoriaMapper.toDTO(categoria);
     }
 
@@ -168,25 +163,27 @@ public class CategoriaService {
     }
 
     /**
-     * Reordenar categorias do usuário
+     * Reordenar categorias do usuário (SEM FOR — 100% STREAM)
      */
     public void reordenar(List<Long> ordensIds, Long usuarioId) {
         log.info("Reordenando categorias para usuário ID: {}", usuarioId);
 
         Usuario usuario = buscarUsuario(usuarioId);
 
-        for (int i = 0; i < ordensIds.size(); i++) {
-            Long categoriaId = ordensIds.get(i);
-            categoriaRepository.findByIdAndUsuario(categoriaId, usuario).ifPresent(categoria -> {
-                categoria.setOrdem(i + 1);
-                categoriaRepository.save(categoria);
-            });
-        }
+        ordensIds.stream()
+                .map(id -> categoriaRepository.findByIdAndUsuario(id, usuario))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .forEach(categoria -> {
+                    int novaOrdem = ordensIds.indexOf(categoria.getId()) + 1;
+                    categoria.setOrdem(novaOrdem);
+                    categoriaRepository.save(categoria);
+                });
 
         log.info("Categorias reordenadas com sucesso");
     }
 
-    // Métodos auxiliares
+    // Métodos auxiliares (modernos + enxutos)
     private Usuario buscarUsuario(Long usuarioId) {
         return usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));

@@ -1,8 +1,8 @@
 package com.vox.projeto.vox.controller;
 
+import com.vox.projeto.vox.dto.EstatisticasDTO;
 import com.vox.projeto.vox.dto.MensagemCreateDTO;
 import com.vox.projeto.vox.dto.MensagemDTO;
-import com.vox.projeto.vox.service.EstatisticasDTO;
 import com.vox.projeto.vox.service.MensagemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
