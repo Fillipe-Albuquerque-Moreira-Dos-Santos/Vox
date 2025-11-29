@@ -1,0 +1,124 @@
+<div class="container">
+  <h1 class="titulo">⚙️ Configurações</h1>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="loader"></div>
+    </div>
+  }
+
+  @else if (configuracao()) {
+    <div class="secao">
+
+      <!-- Aparência -->
+      <section class="card">
+        <h2 class="card-title">🎨 Aparência</h2>
+
+        <div class="campo">
+          <label>Tamanho dos Pictogramas</label>
+          <select [(ngModel)]="configuracao()!.tamanhoPictograma" (change)="salvar()">
+            <option value="PEQUENO">Pequeno</option>
+            <option value="MEDIO">Médio</option>
+            <option value="GRANDE">Grande</option>
+          </select>
+        </div>
+
+        <div class="campo-inline">
+          <label>Modo Escuro</label>
+          <input type="checkbox" [(ngModel)]="configuracao()!.modoEscuro" (change)="salvar()">
+        </div>
+
+        <div class="campo-inline">
+          <label>Alto Contraste</label>
+          <input type="checkbox" [(ngModel)]="configuracao()!.modoAltoContraste" (change)="salvar()">
+        </div>
+      </section>
+
+      <!-- Áudio e Voz -->
+      <section class="card">
+        <h2 class="card-title">🔊 Áudio e Voz</h2>
+
+        <div class="campo-inline">
+          <label>Habilitar Som</label>
+          <input type="checkbox" [(ngModel)]="configuracao()!.habilitarSom" (change)="salvar()">
+        </div>
+
+        @if (configuracao()!.habilitarSom) {
+          <div class="campo">
+            <label>Velocidade da Voz: {{ configuracao()!.velocidadeVoz }}%</label>
+            <input
+              type="range"
+              min="50"
+              max="200"
+              step="10"
+              [(ngModel)]="configuracao()!.velocidadeVoz"
+              (change)="salvar()"
+            />
+          </div>
+
+          <div class="campo">
+            <label>Idioma da Voz</label>
+            <select [(ngModel)]="configuracao()!.idiomaVoz" (change)="salvar()">
+              <option value="pt-BR">Português (Brasil)</option>
+              <option value="en-US">Inglês (EUA)</option>
+              <option value="es-ES">Espanhol</option>
+            </select>
+          </div>
+        }
+      </section>
+
+      <!-- Acessibilidade -->
+      <section class="card">
+        <h2 class="card-title">♿ Acessibilidade</h2>
+
+        <div class="campo-inline">
+          <label>Modo Varredura</label>
+          <input type="checkbox" [(ngModel)]="configuracao()!.modoVarredura" (change)="salvar()">
+        </div>
+
+        @if (configuracao()!.modoVarredura) {
+          <div class="campo">
+            <label>Tempo de Varredura: {{ configuracao()!.tempoVarredura }} ms</label>
+            <input
+              type="range"
+              min="500"
+              max="5000"
+              step="100"
+              [(ngModel)]="configuracao()!.tempoVarredura"
+              (change)="salvar()"
+            />
+          </div>
+        }
+
+        <div class="campo-inline">
+          <label>Confirmar Seleção com Som</label>
+          <input type="checkbox" [(ngModel)]="configuracao()!.confirmarSelecao" (change)="salvar()">
+        </div>
+      </section>
+
+      <!-- Privacidade -->
+      <section class="card">
+        <h2 class="card-title">🔒 Privacidade</h2>
+
+        <div class="campo-inline">
+          <label>Salvar Histórico</label>
+          <input type="checkbox" [(ngModel)]="configuracao()!.salvarHistorico" (change)="salvar()">
+        </div>
+
+        <div class="campo-inline">
+          <label>Permitir Relatórios</label>
+          <input type="checkbox" [(ngModel)]="configuracao()!.permitirRelatorios" (change)="salvar()">
+        </div>
+      </section>
+
+      <!-- Reset -->
+      <div class="acoes">
+        <button class="btn-reset" (click)="resetar()">🔄 Restaurar Padrões</button>
+      </div>
+
+      @if (mensagemSucesso()) {
+        <div class="sucesso">{{ mensagemSucesso() }}</div>
+      }
+    </div>
+  }
+</div>

@@ -44,7 +44,7 @@ public class ConfiguracaoUsuario {
 
     @Column(nullable = false)
     @Builder.Default
-    private Integer velocidadeVoz = 1; // 1 = normal, 2 = rápido, 0 = lento
+    private Integer velocidadeVoz = 100; // 1 = normal, 2 = rápido, 0 = lento
 
     @Column(length = 10)
     @Builder.Default
