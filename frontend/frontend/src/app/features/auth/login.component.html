@@ -9,7 +9,8 @@
     </div>
 
     <!-- Formulário -->
-    <form (ngSubmit)="login()" class="login-form">
+    <div class="login-form">
+
       <div class="form-group">
         <label for="email" class="form-label">Email</label>
         <input
@@ -17,10 +18,9 @@
           id="email"
           [(ngModel)]="email"
           name="email"
-          required
           placeholder="seu@email.com"
           class="form-input"
-        >
+        />
       </div>
 
       <div class="form-group">
@@ -30,12 +30,13 @@
           id="senha"
           [(ngModel)]="senha"
           name="senha"
-          required
           placeholder="••••••••"
           class="form-input"
-        >
+          (keyup.enter)="login()"
+        />
       </div>
 
+      <!-- Mensagem de erro -->
       @if (erro()) {
         <div class="error-message">
           {{ erro() }}
@@ -43,9 +44,10 @@
       }
 
       <button
-        type="submit"
-        [disabled]="loading()"
+        type="button"
         class="btn-submit"
+        [disabled]="loading()"
+        (click)="login()"
       >
         @if (loading()) {
           <span class="spinner"></span>
@@ -54,18 +56,19 @@
           <span>Entrar</span>
         }
       </button>
-    </form>
+    </div>
 
     <!-- Login de Demonstração -->
     <div class="divider">
       <p class="divider-text">Para demonstração, use:</p>
       <button
         type="button"
-        (click)="loginDemo()"
         class="btn-demo"
+        (click)="loginDemo()"
       >
         Login de Demonstração
       </button>
     </div>
+
   </div>
 </div>

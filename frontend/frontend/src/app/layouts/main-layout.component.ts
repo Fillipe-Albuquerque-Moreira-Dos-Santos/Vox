@@ -1,6 +1,6 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, signal, computed } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
 import { ConfiguracaoService } from '../core/services/configuracao.service';
 
@@ -8,133 +8,8 @@ import { ConfiguracaoService } from '../core/services/configuracao.service';
   selector: 'app-main-layout',
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
-  template: `
-    <div class="min-h-screen" [class.bg-gray-900]="modoEscuro()">
-
-      <!-- Menu de Navegação -->
-      <nav class="shadow-lg sticky top-0 z-50"
-           [class.bg-gray-800]="modoEscuro()"
-           [class.bg-blue-600]="!modoEscuro()">
-        <div class="max-w-7xl mx-auto px-4">
-          <div class="flex justify-between items-center h-16">
-
-            <!-- Logo -->
-            <div class="flex items-center">
-              <span class="text-2xl font-bold text-white">🗣️ VOX</span>
-            </div>
-
-            <!-- Menu Desktop -->
-            <div class="hidden md:flex space-x-4">
-
-              <a routerLink="/comunicacao"
-                 routerLinkActive="bg-blue-700"
-                 class="px-4 py-2 rounded-lg text-white hover:bg-blue-700 transition-colors font-medium">
-                 💬 Comunicação
-              </a>
-
-              <a routerLink="/frases-favoritas"
-                 routerLinkActive="bg-blue-700"
-                 class="px-4 py-2 rounded-lg text-white hover:bg-blue-700 transition-colors font-medium">
-                 ⭐ Frases Favoritas
-              </a>
-
-              <a routerLink="/historico"
-                 routerLinkActive="bg-blue-700"
-                 class="px-4 py-2 rounded-lg text-white hover:bg-blue-700 transition-colors font-medium">
-                 📜 Histórico
-              </a>
-
-              <a routerLink="/categorias"
-                 routerLinkActive="bg-blue-700"
-                 class="px-4 py-2 rounded-lg text-white hover:bg-blue-700 transition-colors font-medium">
-                 📂 Categorias
-              </a>
-
-              <a routerLink="/configuracoes"
-                 routerLinkActive="bg-blue-700"
-                 class="px-4 py-2 rounded-lg text-white hover:bg-blue-700 transition-colors font-medium">
-                 ⚙️ Configurações
-              </a>
-
-            </div>
-
-            <!-- Usuário e Logout -->
-            <div class="flex items-center gap-4">
-              <span class="text-white font-medium hidden md:block">
-                👤 {{ currentUser()?.nome }}
-              </span>
-
-              <button
-                (click)="logout()"
-                class="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white font-medium transition-colors">
-                🚪 Sair
-              </button>
-            </div>
-
-            <!-- Menu Mobile Toggle -->
-            <button
-              (click)="toggleMobileMenu()"
-              class="md:hidden text-white p-2">
-              <span class="text-2xl">☰</span>
-            </button>
-
-          </div>
-
-          <!-- Menu Mobile -->
-          @if (mobileMenuOpen()) {
-            <div class="md:hidden pb-4">
-              <div class="flex flex-col space-y-2">
-
-                <a routerLink="/comunicacao"
-                   routerLinkActive="bg-blue-700"
-                   (click)="closeMobileMenu()"
-                   class="px-4 py-2 rounded-lg text-white hover:bg-blue-700 transition-colors">
-                   💬 Comunicação
-                </a>
-
-                <a routerLink="/frases-favoritas"
-                   routerLinkActive="bg-blue-700"
-                   (click)="closeMobileMenu()"
-                   class="px-4 py-2 rounded-lg text-white hover:bg-blue-700 transition-colors">
-                   ⭐ Frases Favoritas
-                </a>
-
-                <a routerLink="/historico"
-                   routerLinkActive="bg-blue-700"
-                   (click)="closeMobileMenu()"
-                   class="px-4 py-2 rounded-lg text-white hover:bg-blue-700 transition-colors">
-                   📜 Histórico
-                </a>
-
-                <a routerLink="/categorias"
-                   routerLinkActive="bg-blue-700"
-                   (click)="closeMobileMenu()"
-                   class="px-4 py-2 rounded-lg text-white hover:bg-blue-700 transition-colors">
-                   📂 Categorias
-                </a>
-
-                <a routerLink="/configuracoes"
-                   routerLinkActive="bg-blue-700"
-                   (click)="closeMobileMenu()"
-                   class="px-4 py-2 rounded-lg text-white hover:bg-blue-700 transition-colors">
-                   ⚙️ Configurações
-                </a>
-
-              </div>
-            </div>
-          }
-
-        </div>
-      </nav>
-
-      <!-- Conteúdo Principal -->
-      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <router-outlet></router-outlet>
-      </main>
-
-    </div>
-  `,
-  styles: []
+  templateUrl: './main-layout.component.html',
+  styleUrls: ['./main-layout.component.scss']
 })
 export class MainLayoutComponent {
 
@@ -151,18 +26,23 @@ export class MainLayoutComponent {
     }
   }
 
-  currentUser = computed(() => this.authService.currentUserValue);
-  modoEscuro = computed(() => this.configuracaoService.getConfiguracao()?.modoEscuro || false);
+  get currentUser() {
+    return this.authService.currentUser();
+  }
 
-  toggleMobileMenu(): void {
+  modoEscuro = computed(() =>
+    this.configuracaoService.getConfiguracao()?.modoEscuro ?? false
+  );
+
+  toggleMobileMenu() {
     this.mobileMenuOpen.update(v => !v);
   }
 
-  closeMobileMenu(): void {
+  closeMobileMenu() {
     this.mobileMenuOpen.set(false);
   }
 
-  logout(): void {
+  logout() {
     this.authService.logout();
     this.router.navigate(['/login']);
   }

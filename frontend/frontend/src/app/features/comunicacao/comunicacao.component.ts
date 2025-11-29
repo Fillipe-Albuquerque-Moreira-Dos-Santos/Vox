@@ -21,52 +21,61 @@ interface PictogramaSelecionado {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './comunicacao.component.html',
-  // styleUrls: ['./comunicacao.component.scss'] // remover se não tiver o arquivo
-  styles: []
+  styles: [] // pode remover se usar SCSS externo
 })
-
 export class ComunicacaoComponent implements OnInit {
-  // Signals
+
+  // Signals principais
   categorias = signal<Categoria[]>([]);
   categoriaSelecionada = signal<Categoria | null>(null);
   pictogramas = signal<Pictograma[]>([]);
   pictogramasSelecionados = signal<PictogramaSelecionado[]>([]);
   pictogramasMaisUsados = signal<Pictograma[]>([]);
   configuracao = signal<ConfiguracaoUsuario | null>(null);
+
   loading = signal(false);
   error = signal<string | null>(null);
 
-  // Computed
-  textoCompleto = computed(() => {
-    return this.pictogramasSelecionados()
+  // Texto final exibido
+  textoCompleto = computed(() =>
+    this.pictogramasSelecionados()
       .map(p => p.pictograma.label)
-      .join(' ');
-  });
+      .join(' ')
+  );
 
-  conteudoJson = computed(() => {
-    return JSON.stringify(
+  // JSON salvo no backend
+  conteudoJson = computed(() =>
+    JSON.stringify(
       this.pictogramasSelecionados().map(p => ({
         id: p.pictograma.id,
         label: p.pictograma.label,
         timestamp: p.timestamp
       }))
-    );
-  });
+    )
+  );
 
   tamanhoPictograma = computed(() => {
     const tamanho = this.configuracao()?.tamanhoPictograma;
-    switch (tamanho) {
-      case TamanhoPictograma.PEQUENO:
-        return 'w-20 h-20';
-      case TamanhoPictograma.GRANDE:
-        return 'w-32 h-32';
-      default:
-        return 'w-24 h-24';
+
+    if (tamanho === TamanhoPictograma.PEQUENO) {
+      return 'w-20 h-20';
     }
+
+    if (tamanho === TamanhoPictograma.MEDIO) {
+      return 'w-24 h-24';
+    }
+
+    if (tamanho === TamanhoPictograma.GRANDE) {
+      return 'w-32 h-32';
+    }
+
+    // Caso venha undefined, null ou valor inválido
+    return 'w-24 h-24'; // MEDIO como padrão
   });
 
-  modoEscuro = computed(() => this.configuracao()?.modoEscuro || false);
-  modoAltoContraste = computed(() => this.configuracao()?.modoAltoContraste || false);
+  // Modos visuais
+  modoEscuro = computed(() => this.configuracao()?.modoEscuro ?? false);
+  modoAltoContraste = computed(() => this.configuracao()?.modoAltoContraste ?? false);
 
   constructor(
     private categoriaService: CategoriaService,
@@ -83,88 +92,91 @@ export class ComunicacaoComponent implements OnInit {
     this.carregarPictogramasMaisUsados();
   }
 
-  carregarConfiguracao(): void {
-    const usuarioId = this.authService.usuarioId;
-    if (!usuarioId) return;
+  // ============================================
+  //   CARREGAMENTOS INICIAIS
+  // ============================================
 
-    this.configuracaoService.obter(usuarioId).subscribe({
-      next: (config) => this.configuracao.set(config),
-      error: (err) => console.error('Erro ao carregar configuração:', err)
+  carregarConfiguracao(): void {
+    const userId = this.authService.usuarioId;
+    if (!userId) return;
+
+    this.configuracaoService.obter(userId).subscribe({
+      next: config => this.configuracao.set(config),
+      error: err => console.error('Erro ao carregar configuração', err)
     });
   }
 
   carregarCategorias(): void {
-    const usuarioId = this.authService.usuarioId;
-    if (!usuarioId) return;
+    const userId = this.authService.usuarioId;
+    if (!userId) return;
 
     this.loading.set(true);
-    this.categoriaService.listarDisponiveis(usuarioId).subscribe({
-      next: (categorias) => {
-        this.categorias.set(categorias.filter(c => c.ativa));
-        if (categorias.length > 0) {
-          this.selecionarCategoria(categorias[0]);
-        }
+
+    this.categoriaService.listarDisponiveis(userId).subscribe({
+      next: categorias => {
+        const ativas = categorias.filter(c => c.ativa);
+        this.categorias.set(ativas);
+
+        if (ativas.length > 0) this.selecionarCategoria(ativas[0]);
+
         this.loading.set(false);
       },
-      error: (err) => {
+      error: () => {
         this.error.set('Erro ao carregar categorias');
         this.loading.set(false);
-        console.error(err);
       }
     });
   }
 
   carregarPictogramasMaisUsados(): void {
-    const usuarioId = this.authService.usuarioId;
-    if (!usuarioId) return;
+    const userId = this.authService.usuarioId;
+    if (!userId) return;
 
-    this.pictogramaService.listarMaisUsados(usuarioId, 10).subscribe({
-      next: (pictogramas) => this.pictogramasMaisUsados.set(pictogramas),
-      error: (err) => console.error('Erro ao carregar mais usados:', err)
+    this.pictogramaService.listarMaisUsados(userId, 10).subscribe({
+      next: lista => this.pictogramasMaisUsados.set(lista),
+      error: err => console.error('Erro ao carregar pictogramas mais usados', err)
     });
   }
 
-  selecionarCategoria(categoria: Categoria): void {
-    const usuarioId = this.authService.usuarioId;
-    if (!usuarioId) return;
+  // ============================================
+  //   AÇÕES DA TELA
+  // ============================================
 
-    this.categoriaSelecionada.set(categoria);
+  selecionarCategoria(c: Categoria): void {
+    const userId = this.authService.usuarioId;
+    if (!userId) return;
+
+    this.categoriaSelecionada.set(c);
     this.loading.set(true);
 
-    this.pictogramaService.listarPorCategoria(categoria.id, usuarioId).subscribe({
-      next: (pictogramas) => {
-        this.pictogramas.set(pictogramas.filter(p => p.ativo));
+    this.pictogramaService.listarPorCategoria(c.id, userId).subscribe({
+      next: lista => {
+        this.pictogramas.set(lista.filter(p => p.ativo));
         this.loading.set(false);
       },
-      error: (err) => {
+      error: () => {
         this.error.set('Erro ao carregar pictogramas');
         this.loading.set(false);
-        console.error(err);
       }
     });
   }
 
-  selecionarPictograma(pictograma: Pictograma): void {
-    // Adicionar pictograma selecionado
-    this.pictogramasSelecionados.update(selecionados => [
-      ...selecionados,
-      { pictograma, timestamp: Date.now() }
+  selecionarPictograma(p: Pictograma): void {
+    this.pictogramasSelecionados.update(lista => [
+      ...lista,
+      { pictograma: p, timestamp: Date.now() }
     ]);
 
-    // Registrar uso
-    this.pictogramaService.registrarUso(pictograma.id).subscribe();
+    this.pictogramaService.registrarUso(p.id).subscribe();
 
-    // Falar o texto se configurado
-    const config = this.configuracao();
-    if (config?.habilitarSom && config?.confirmarSelecao) {
-      this.speechService.speak(pictograma.label);
+    const cfg = this.configuracao();
+    if (cfg?.habilitarSom && cfg?.confirmarSelecao) {
+      this.speechService.speak(p.label);
     }
   }
 
   removerUltimoPictograma(): void {
-    this.pictogramasSelecionados.update(selecionados =>
-      selecionados.slice(0, -1)
-    );
+    this.pictogramasSelecionados.update(lista => lista.slice(0, -1));
   }
 
   limparSelecao(): void {
@@ -173,15 +185,18 @@ export class ComunicacaoComponent implements OnInit {
   }
 
   falarMensagem(): void {
-    const texto = this.textoCompleto();
-    if (texto) {
-      this.speechService.speak(texto);
+    const txt = this.textoCompleto();
+    if (txt.length > 0) {
+      this.speechService.speak(txt);
     }
   }
 
   salvarMensagem(): void {
-    const usuarioId = this.authService.usuarioId;
-    if (!usuarioId || this.pictogramasSelecionados().length === 0) return;
+    const userId = this.authService.usuarioId;
+    if (!userId) return;
+
+    const lista = this.pictogramasSelecionados();
+    if (lista.length === 0) return;
 
     const mensagem = {
       conteudoJson: this.conteudoJson(),
@@ -190,15 +205,11 @@ export class ComunicacaoComponent implements OnInit {
       dispositivoOrigem: 'WEB'
     };
 
-    this.mensagemService.salvar(mensagem, usuarioId).subscribe({
+    this.mensagemService.salvar(mensagem, userId).subscribe({
       next: () => {
-        console.log('Mensagem salva com sucesso');
-        // Limpar após salvar se configurado
-        if (this.configuracao()?.salvarHistorico) {
-          this.limparSelecao();
-        }
+        if (this.configuracao()?.salvarHistorico) this.limparSelecao();
       },
-      error: (err) => console.error('Erro ao salvar mensagem:', err)
+      error: err => console.error('Erro ao salvar mensagem', err)
     });
   }
 }

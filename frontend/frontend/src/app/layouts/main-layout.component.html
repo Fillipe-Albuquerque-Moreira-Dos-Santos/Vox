@@ -1,0 +1,53 @@
+<div class="layout-container" [class.dark-mode]="modoEscuro()">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="navbar-content">
+
+      <!-- Logo -->
+      <div class="logo">
+        🗣️ <span>VOX</span>
+      </div>
+
+      <!-- Menu Desktop -->
+      <div class="menu-desktop">
+        <a routerLink="/comunicacao" routerLinkActive="active">💬 Comunicação</a>
+        <a routerLink="/frases-favoritas" routerLinkActive="active">⭐ Frases Favoritas</a>
+        <a routerLink="/historico" routerLinkActive="active">📜 Histórico</a>
+        <a routerLink="/categorias" routerLinkActive="active">📂 Categorias</a>
+        <a routerLink="/configuracoes" routerLinkActive="active">⚙️ Configurações</a>
+      </div>
+
+      <!-- Usuário -->
+      <div class="user-box">
+        <span class="user-name">👤 {{ currentUser?.nome || 'Usuário' }}</span>
+
+        <button class="btn-logout" (click)="logout()">
+          🚪 Sair
+        </button>
+      </div>
+
+      <!-- Mobile Toggle -->
+      <button class="mobile-toggle" (click)="toggleMobileMenu()">
+        ☰
+      </button>
+    </div>
+
+    <!-- MENU MOBILE -->
+    @if (mobileMenuOpen()) {
+      <div class="menu-mobile">
+        <a routerLink="/comunicacao" routerLinkActive="active" (click)="closeMobileMenu()">💬 Comunicação</a>
+        <a routerLink="/frases-favoritas" routerLinkActive="active" (click)="closeMobileMenu()">⭐ Frases Favoritas</a>
+        <a routerLink="/historico" routerLinkActive="active" (click)="closeMobileMenu()">📜 Histórico</a>
+        <a routerLink="/categorias" routerLinkActive="active" (click)="closeMobileMenu()">📂 Categorias</a>
+        <a routerLink="/configuracoes" routerLinkActive="active" (click)="closeMobileMenu()">⚙️ Configurações</a>
+      </div>
+    }
+  </nav>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+</div>
