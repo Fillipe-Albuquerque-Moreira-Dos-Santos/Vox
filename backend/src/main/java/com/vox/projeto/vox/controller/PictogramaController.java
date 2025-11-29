@@ -2,6 +2,7 @@ package com.vox.projeto.vox.controller;
 
 import com.vox.projeto.vox.dto.PictogramaCreateDTO;
 import com.vox.projeto.vox.dto.PictogramaDTO;
+import com.vox.projeto.vox.exception.ResourceNotFoundException;
 import com.vox.projeto.vox.service.PictogramaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/pictogramas")
+@RequestMapping("pictogramas")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Pictogramas", description = "Gerenciamento de pictogramas")
@@ -53,8 +54,17 @@ public class PictogramaController {
             @RequestHeader("Usuario-Id") Long usuarioId) {
 
         log.info("GET /api/pictogramas/mais-usados - Listando {} mais usados", limite);
-        List<PictogramaDTO> pictogramas = pictogramaService.listarMaisUsados(usuarioId, limite);
-        return ResponseEntity.ok(pictogramas);
+
+        try {
+            List<PictogramaDTO> pictogramas = pictogramaService.listarMaisUsados(usuarioId, limite);
+            return ResponseEntity.ok(pictogramas);
+        } catch (ResourceNotFoundException ex) {
+            log.warn("Usuário não encontrado: {}", usuarioId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(List.of());
+        } catch (Exception ex) {
+            log.error("Erro ao listar pictogramas mais usados", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(List.of());
+        }
     }
 
     @GetMapping("/buscar")

@@ -1,72 +1,275 @@
-<div class="comunicacao-wrapper" [class.dark-mode]="modoEscuro()">
+<div class="comunicacao-container"
+     [class.dark-mode]="modoEscuro()"
+     [class.alto-contraste]="modoAltoContraste()">
 
-  <!-- ÁREA DA MENSAGEM CONSTRUÍDA -->
-  <section class="mensagem-area">
+  <!-- ===================================== -->
+  <!-- HEADER COM TÍTULO E AÇÕES -->
+  <!-- ===================================== -->
+  <header class="app-header">
+    <div class="header-content">
+      <h1 class="app-title">
+        <span class="app-icon">🗣️</span>
+        VOX Comunicação
+      </h1>
 
-    <h2 class="mensagem-titulo">Mensagem Construída</h2>
+      <div class="header-actions">
+        <button class="icon-btn" title="Pictogramas mais usados" (click)="toggleMaisUsados()">
+          ⭐
+        </button>
+        <button class="icon-btn" title="Configurações" (click)="abrirConfiguracoes()">
+          ⚙️
+        </button>
+        <button class="icon-btn" title="Histórico" (click)="abrirHistorico()">
+          📋
+        </button>
+      </div>
+    </div>
+  </header>
 
-    <!-- Lista de pictogramas adicionados -->
-    <div class="mensagem-pictos">
-      @for (item of pictogramasSelecionados(); track item.pictograma.id) {
-        <div class="picto-item">
-          <div class="picto-emoji">{{ item.pictograma }}</div>
-          <span class="picto-label">{{ item.pictograma.label }}</span>
+  <!-- ===================================== -->
+  <!-- BARRA DE MENSAGEM (CONSTRUÇÃO) -->
+  <!-- ===================================== -->
+  <section class="mensagem-bar">
+    <div class="mensagem-content">
+
+      <!-- Pictogramas selecionados -->
+      <div class="pictogramas-selecionados" #phraseContent>
+        @if (pictogramasSelecionados().length === 0) {
+          <div class="placeholder-texto">
+            Selecione pictogramas para formar sua mensagem...
+          </div>
+        }
+
+        @for (item of pictogramasSelecionados(); track item.timestamp) {
+          <div class="picto-selecionado"
+               (click)="removerPictogramaPorIndex($index)"
+               title="Clique para remover">
+
+            <!-- Verifica se tem URL de imagem ou usa emoji -->
+            @if (item.pictograma.imagemUrl) {
+              <img [src]="item.pictograma.imagemUrl"
+                   [alt]="item.pictograma.label"
+                   class="picto-imagem">
+            } @else {
+              <span class="picto-emoji">{{ item.pictograma.icone || '📷' }}</span>
+            }
+
+            <span class="picto-label-small">{{ item.pictograma.label }}</span>
+            <span class="picto-remove">✕</span>
+          </div>
+        }
+      </div>
+
+      <!-- Texto completo da mensagem -->
+      @if (textoCompleto()) {
+        <div class="texto-completo">
+          <strong>📝</strong> {{ textoCompleto() }}
         </div>
       }
     </div>
 
-    <!-- Texto completo -->
-    <div class="mensagem-texto">
-      {{ textoCompleto() }}
-    </div>
-
-    <!-- Ações -->
-    <div class="mensagem-acoes">
-      <button class="btn btn-falar" (click)="falarMensagem()">🔊 Falar</button>
-      <button class="btn btn-limpar" (click)="limparSelecao()">🧹 Limpar</button>
-    </div>
-  </section>
-
-  <!-- CATEGORIAS -->
-  <section class="categorias-area">
-    @for (categoria of categorias(); track categoria.id) {
-      <button
-        class="categoria-btn"
-        [class.active]="categoriaSelecionada()?.id === categoria.id"
-        [style.background-color]="categoria.cor"
-        (click)="selecionarCategoria(categoria)">
-        {{ categoria.nome }}
+    <!-- Botões de ação -->
+    <div class="mensagem-actions">
+      <button class="btn-action btn-voltar"
+              (click)="removerUltimoPictograma()"
+              [disabled]="pictogramasSelecionados().length === 0"
+              title="Remover último">
+        ↶
       </button>
-    }
+
+      <button class="btn-action btn-limpar"
+              (click)="limparSelecao()"
+              [disabled]="pictogramasSelecionados().length === 0"
+              title="Limpar tudo">
+        🗑️
+      </button>
+
+      <button class="btn-action btn-salvar"
+              (click)="salvarMensagem()"
+              [disabled]="pictogramasSelecionados().length === 0"
+              title="Salvar no histórico">
+        💾
+      </button>
+
+      <button class="btn-falar"
+              (click)="falarMensagem()"
+              [disabled]="pictogramasSelecionados().length === 0">
+        <span class="btn-icon">🔊</span>
+        <span class="btn-text">Falar</span>
+      </button>
+    </div>
   </section>
 
-  <!-- LISTA DE PICTOGRAMAS -->
-  <section class="pictos-area">
-    @for (picto of pictogramas(); track picto.id) {
-      <button class="picto-card" (click)="selecionarPictograma(picto)">
+  <!-- ===================================== -->
+  <!-- ÁREA PRINCIPAL (CATEGORIAS + PICTOGRAMAS) -->
+  <!-- ===================================== -->
+  <div class="main-area">
 
-        <div class="picto-emoji">{{ picto}}</div>
+    <!-- SIDEBAR DE CATEGORIAS -->
+    <aside class="categorias-sidebar">
+      <div class="categorias-scroll">
+        @for (categoria of categorias(); track categoria.id) {
+          <button
+            class="categoria-btn"
+            [class.active]="categoriaSelecionada()?.id === categoria.id"
+            [style.--categoria-cor]="categoria.cor"
+            (click)="selecionarCategoria(categoria)"
+            [title]="categoria.nome">
 
-        <div class="picto-info">
-          <span class="picto-label">{{ picto.label }}</span>
-          <span class="picto-uso">{{ picto}}x usado</span>
+            <span class="categoria-icon">{{ categoria.icone || '📁' }}</span>
+            <span class="categoria-nome">{{ categoria.nome }}</span>
+
+            @if (categoria.icone) {
+              <span class="badge-personalizado">★</span>
+            }
+          </button>
+        }
+
+        <!-- Botão adicionar categoria -->
+        <button class="categoria-btn btn-add"
+                (click)="adicionarCategoria()"
+                title="Adicionar categoria">
+          <span class="categoria-icon">➕</span>
+          <span class="categoria-nome">Nova</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- GRID DE PICTOGRAMAS -->
+    <section class="pictogramas-area">
+
+      <!-- Título da categoria selecionada -->
+      @if (categoriaSelecionada()) {
+        <div class="categoria-header">
+          <h2 class="categoria-titulo">
+            <span>{{ categoriaSelecionada()?.icone }}</span>
+            {{ categoriaSelecionada()?.nome }}
+          </h2>
+
+          <div class="categoria-info">
+            <span class="pictograma-count">
+              {{ pictogramas().length }} pictogramas
+            </span>
+          </div>
         </div>
+      }
 
-      </button>
-    }
-  </section>
+      <!-- Grid de pictogramas -->
+      <div class="pictogramas-grid" [attr.data-tamanho]="configuracao()?.tamanhoPictograma || 'medio'">
 
-  <!-- Loading -->
-  @if (loading()) {
-    <div class="loading-center">
-      <div class="spinner"></div>
+        @if (loading()) {
+          <!-- Loading state -->
+          <div class="loading-overlay">
+            <div class="spinner"></div>
+            <p>Carregando pictogramas...</p>
+          </div>
+        }
+
+        @if (!loading() && pictogramas().length === 0) {
+          <!-- Empty state -->
+          <div class="empty-state">
+            <span class="empty-icon">📭</span>
+            <h3>Nenhum pictograma encontrado</h3>
+            <p>Adicione pictogramas a esta categoria ou selecione outra.</p>
+          </div>
+        }
+
+        @for (picto of pictogramas(); track picto.id) {
+          <button
+            class="pictograma-card"
+            (click)="selecionarPictograma(picto)"
+            [class.frequente]="picto.vezesUsado && picto.vezesUsado > 10"
+            [title]="picto.label + (picto.labelAlternativo ? ' (' + picto.labelAlternativo + ')' : '')">
+
+            <!-- Imagem ou emoji -->
+            <div class="picto-visual">
+              @if (picto.imagemUrl) {
+                <img [src]="picto.imagemUrl"
+                     [alt]="picto.label"
+                     class="picto-img"
+                     loading="lazy">
+              } @else {
+                <span class="picto-emoji-large">{{ picto.icone || '📷' }}</span>
+              }
+            </div>
+
+            <!-- Label -->
+            <div class="picto-info">
+              <span class="picto-label">{{ picto.label }}</span>
+
+              @if (picto.labelAlternativo) {
+                <span class="picto-alt">{{ picto.labelAlternativo }}</span>
+              }
+            </div>
+
+            <!-- Badge de uso frequente -->
+            @if (picto.vezesUsado && picto.vezesUsado > 10) {
+              <span class="badge-frequente" [title]="'Usado ' + picto.vezesUsado + ' vezes'">
+                🔥
+              </span>
+            }
+
+            <!-- Badge padrão -->
+            @if (picto.padrao) {
+              <span class="badge-padrao">⭐</span>
+            }
+          </button>
+        }
+      </div>
+
+      <!-- Botão adicionar pictograma -->
+      @if (!loading() && categoriaSelecionada()) {
+        <button class="btn-add-pictograma" (click)="adicionarPictograma()">
+          <span>➕</span>
+          Adicionar pictograma personalizado
+        </button>
+      }
+    </section>
+  </div>
+
+  <!-- ===================================== -->
+  <!-- PAINEL DE PICTOGRAMAS MAIS USADOS -->
+  <!-- ===================================== -->
+  @if (mostrarMaisUsados()) {
+    <aside class="painel-mais-usados">
+      <div class="painel-header">
+        <h3>⭐ Mais Usados</h3>
+        <button class="btn-fechar" (click)="toggleMaisUsados()">✕</button>
+      </div>
+
+      <div class="mais-usados-grid">
+        @for (picto of pictogramasMaisUsados(); track picto.id) {
+          <button class="picto-mini"
+                  (click)="selecionarPictograma(picto)"
+                  [title]="picto.label">
+            @if (picto.imagemUrl) {
+              <img [src]="picto.imagemUrl" [alt]="picto.label">
+            } @else {
+              <span>{{ picto.icone || '📷' }}</span>
+            }
+            <span class="picto-mini-label">{{ picto.label }}</span>
+          </button>
+        }
+      </div>
+    </aside>
+  }
+
+  <!-- ===================================== -->
+  <!-- ALERTAS E NOTIFICAÇÕES -->
+  <!-- ===================================== -->
+  @if (error()) {
+    <div class="alert alert-error" (click)="error.set(null)">
+      <span class="alert-icon">⚠️</span>
+      <span class="alert-message">{{ error() }}</span>
+      <button class="alert-close">✕</button>
     </div>
   }
 
-  <!-- Erro -->
-  @if (error()) {
-    <div class="alert-erro">
-      {{ error() }}
+  @if (sucessoMensagem()) {
+    <div class="alert alert-success" (click)="sucessoMensagem.set(null)">
+      <span class="alert-icon">✅</span>
+      <span class="alert-message">{{ sucessoMensagem() }}</span>
+      <button class="alert-close">✕</button>
     </div>
   }
 </div>
