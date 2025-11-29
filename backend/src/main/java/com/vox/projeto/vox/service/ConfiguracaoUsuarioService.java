@@ -26,7 +26,7 @@ public class ConfiguracaoUsuarioService {
     /**
      * Obter configurações do usuário (cria padrão se não existir)
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public ConfiguracaoUsuarioDTO obterConfiguracoes(Long usuarioId) {
         log.info("Obtendo configurações do usuário: {}", usuarioId);
 
@@ -99,7 +99,8 @@ public class ConfiguracaoUsuarioService {
     }
 
     // Método auxiliar para criar configuração padrão
-    private ConfiguracaoUsuario criarConfiguracaoPadrao(Usuario usuario) {
+    @Transactional
+    public ConfiguracaoUsuario criarConfiguracaoPadrao(Usuario usuario) {
         log.info("Criando configuração padrão para usuário: {}", usuario.getId());
 
         ConfiguracaoUsuario config = ConfiguracaoUsuario.builder()

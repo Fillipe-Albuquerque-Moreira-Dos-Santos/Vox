@@ -23,16 +23,15 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http
+
+        http
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                .cors(cors -> { }) // habilita CORS e usa seu CorsConfig
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll() // ← PERMITE TUDO
-                )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+                        .anyRequest().permitAll()
+                );
+
+        return http.build();
     }
 
     @Bean
