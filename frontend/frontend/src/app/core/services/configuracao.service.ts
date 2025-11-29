@@ -8,7 +8,7 @@ import { ConfiguracaoUsuario } from '../models/configuracao.model';
   providedIn: 'root'
 })
 export class ConfiguracaoService {
-  private endpoint = '/configuracoes';
+  private endpoint = '/api/configuracoes';
   private configuracaoSubject = new BehaviorSubject<ConfiguracaoUsuario | null>(null);
   public configuracao$ = this.configuracaoSubject.asObservable();
 

@@ -1,74 +1,71 @@
-<div class="comunicacao-container"
-     [class.dark]="modoEscuro()"
-     [class.high-contrast]="modoAltoContraste()">
+<div class="comunicacao-wrapper" [class.dark-mode]="modoEscuro()">
 
-  <!-- Barra de mensagem -->
-  <div class="mensagem-bar bg-white/60 dark:bg-gray-800/50">
-    <h2 class="font-bold text-lg mb-2">Mensagem</h2>
+  <!-- ÁREA DA MENSAGEM CONSTRUÍDA -->
+  <section class="mensagem-area">
 
-    <!-- Pictogramas selecionados -->
-    <div class="pictos-selecionados">
+    <h2 class="mensagem-titulo">Mensagem Construída</h2>
+
+    <!-- Lista de pictogramas adicionados -->
+    <div class="mensagem-pictos">
       @for (item of pictogramasSelecionados(); track item.pictograma.id) {
-        <div class="pictograma-item">
-          <div class="text-4xl">{{ item.pictograma.label }}</div>
+        <div class="picto-item">
+          <div class="picto-emoji">{{ item.pictograma }}</div>
+          <span class="picto-label">{{ item.pictograma.label }}</span>
         </div>
       }
     </div>
 
     <!-- Texto completo -->
-    <div class="texto-completo mt-4 bg-white/30 dark:bg-gray-700/40">
+    <div class="mensagem-texto">
       {{ textoCompleto() }}
     </div>
 
     <!-- Ações -->
-    <div class="grid grid-cols-2 gap-3 mt-4">
-      <button class="acao-btn bg-green-500 text-white"
-              (click)="falarMensagem()">
-        🔊 Falar
-      </button>
-
-      <button class="acao-btn bg-blue-500 text-white"
-              (click)="limparSelecao()">
-        🧹 Limpar
-      </button>
+    <div class="mensagem-acoes">
+      <button class="btn btn-falar" (click)="falarMensagem()">🔊 Falar</button>
+      <button class="btn btn-limpar" (click)="limparSelecao()">🧹 Limpar</button>
     </div>
-  </div>
+  </section>
 
   <!-- CATEGORIAS -->
-  <div class="flex gap-3 overflow-x-auto py-3">
+  <section class="categorias-area">
     @for (categoria of categorias(); track categoria.id) {
       <button
-        class="categoria-tab"
+        class="categoria-btn"
         [class.active]="categoriaSelecionada()?.id === categoria.id"
         [style.background-color]="categoria.cor"
         (click)="selecionarCategoria(categoria)">
         {{ categoria.nome }}
       </button>
     }
-  </div>
+  </section>
 
   <!-- LISTA DE PICTOGRAMAS -->
-  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
+  <section class="pictos-area">
     @for (picto of pictogramas(); track picto.id) {
-      <button class="pictograma-btn bg-white/20 dark:bg-gray-700/30"
-              (click)="selecionarPictograma(picto)">
-        <div class="pictograma-emoji text-4xl text-center">
-          {{ picto.label }}
+      <button class="picto-card" (click)="selecionarPictograma(picto)">
+
+        <div class="picto-emoji">{{ picto}}</div>
+
+        <div class="picto-info">
+          <span class="picto-label">{{ picto.label }}</span>
+          <span class="picto-uso">{{ picto}}x usado</span>
         </div>
+
       </button>
     }
-  </div>
+  </section>
 
   <!-- Loading -->
   @if (loading()) {
-    <div class="flex justify-center mt-6">
-      <div class="loading-spinner"></div>
+    <div class="loading-center">
+      <div class="spinner"></div>
     </div>
   }
 
   <!-- Erro -->
   @if (error()) {
-    <div class="alert-erro mt-6">
+    <div class="alert-erro">
       {{ error() }}
     </div>
   }

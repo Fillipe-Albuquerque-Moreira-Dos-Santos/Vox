@@ -1,4 +1,3 @@
-// src/app/features/comunicacao/comunicacao.component.ts
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CategoriaService } from '../../core/services/categoria.service';
@@ -21,11 +20,10 @@ interface PictogramaSelecionado {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './comunicacao.component.html',
-  styles: [] // pode remover se usar SCSS externo
+  styles: []
 })
 export class ComunicacaoComponent implements OnInit {
 
-  // Signals principais
   categorias = signal<Categoria[]>([]);
   categoriaSelecionada = signal<Categoria | null>(null);
   pictogramas = signal<Pictograma[]>([]);
@@ -36,14 +34,11 @@ export class ComunicacaoComponent implements OnInit {
   loading = signal(false);
   error = signal<string | null>(null);
 
-  // Texto final exibido
+  // Construção do texto
   textoCompleto = computed(() =>
-    this.pictogramasSelecionados()
-      .map(p => p.pictograma.label)
-      .join(' ')
+    this.pictogramasSelecionados().map(p => p.pictograma.label).join(' ')
   );
 
-  // JSON salvo no backend
   conteudoJson = computed(() =>
     JSON.stringify(
       this.pictogramasSelecionados().map(p => ({
@@ -54,26 +49,6 @@ export class ComunicacaoComponent implements OnInit {
     )
   );
 
-  tamanhoPictograma = computed(() => {
-    const tamanho = this.configuracao()?.tamanhoPictograma;
-
-    if (tamanho === TamanhoPictograma.PEQUENO) {
-      return 'w-20 h-20';
-    }
-
-    if (tamanho === TamanhoPictograma.MEDIO) {
-      return 'w-24 h-24';
-    }
-
-    if (tamanho === TamanhoPictograma.GRANDE) {
-      return 'w-32 h-32';
-    }
-
-    // Caso venha undefined, null ou valor inválido
-    return 'w-24 h-24'; // MEDIO como padrão
-  });
-
-  // Modos visuais
   modoEscuro = computed(() => this.configuracao()?.modoEscuro ?? false);
   modoAltoContraste = computed(() => this.configuracao()?.modoAltoContraste ?? false);
 
@@ -91,10 +66,6 @@ export class ComunicacaoComponent implements OnInit {
     this.carregarCategorias();
     this.carregarPictogramasMaisUsados();
   }
-
-  // ============================================
-  //   CARREGAMENTOS INICIAIS
-  // ============================================
 
   carregarConfiguracao(): void {
     const userId = this.authService.usuarioId;
@@ -134,22 +105,18 @@ export class ComunicacaoComponent implements OnInit {
 
     this.pictogramaService.listarMaisUsados(userId, 10).subscribe({
       next: lista => this.pictogramasMaisUsados.set(lista),
-      error: err => console.error('Erro ao carregar pictogramas mais usados', err)
+      error: err => console.error('Erro ao carregar mais usados', err)
     });
   }
 
-  // ============================================
-  //   AÇÕES DA TELA
-  // ============================================
-
-  selecionarCategoria(c: Categoria): void {
+  selecionarCategoria(categoria: Categoria): void {
     const userId = this.authService.usuarioId;
     if (!userId) return;
 
-    this.categoriaSelecionada.set(c);
+    this.categoriaSelecionada.set(categoria);
     this.loading.set(true);
 
-    this.pictogramaService.listarPorCategoria(c.id, userId).subscribe({
+    this.pictogramaService.listarPorCategoria(categoria.id, userId).subscribe({
       next: lista => {
         this.pictogramas.set(lista.filter(p => p.ativo));
         this.loading.set(false);

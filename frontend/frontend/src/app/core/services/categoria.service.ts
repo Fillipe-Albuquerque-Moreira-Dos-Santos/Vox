@@ -7,7 +7,7 @@ import { Categoria, CategoriaComPictogramas } from '../models/categoria.model';
   providedIn: 'root'
 })
 export class CategoriaService {
-  private endpoint = '/categorias';
+  private endpoint = '/api/categorias';
 
   constructor(private api: ApiService) {}
 
